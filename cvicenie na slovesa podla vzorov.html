@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cvičenie zo slovenských slovies</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        /* Fő elrendezés: bal oldalon a beállítások/navigáció, jobb oldalon a feladatok */
+        .main-layout {
+            display: flex;
+            gap: 20px;
+        }
+        .sidebar {
+            flex: 1;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            height: fit-content;
+        }
+        .content-area {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        .level-section {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        /* 2. szint rácsszerkezet: 2 oszlop egymás mellett egy kártyán belül */
+        .grid-container-level2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .verb-card {
+            background: #f9fbfc;
+            border: 1px solid #e1e8ed;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .verb-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2980b9;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        /* Kétoszlopos elrendezés a névmásoknak és mezőknek a szó alatt */
+        .conjugation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .pronoun-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .row-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9em;
+        }
+        .row-item span {
+            font-weight: 600;
+            margin-right: 5px;
+            color: #34495e;
+        }
+        input[type="text"] {
+            width: 65%;
+            padding: 4px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        input.correct {
+            border-color: #27ae60;
+            background-color: #eafaf1;
+        }
+        input.incorrect {
+            border-color: #c0392b;
+            background-color: #fdedec;
+        }
+        .btn-check {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+        .btn-check:hover {
+            background-color: #219653;
+        }
+        .score {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+        .sidebar button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #34495e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+        }
+        .sidebar button:hover {
+            background-color: #2c3e50;
+        }
+        .sentence-row {
+            margin-bottom: 15px;
+            font-size: 1.05em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Slovenské slovesá - Cvičenie</h1>
+
+    <div class="main-layout">
+        <!-- BAL OLSZLOP: Beállítások / Navigáció -->
+        <div class="sidebar">
+            <h3>Nastavenia / Menu</h3>
+            <p style="font-size: 0.9em; color: #666;">Vyber si úroveň alebo uprav zoznam slovies:</p>
+            <button onclick="scrollToSection('level2-section')">2. Úroveň: Časovanie</button>
+            <button onclick="scrollToSection('level3-section')">3. Úroveň: Pokročilé</button>
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
+            <label style="font-size: 0.9em; font-weight: bold;">Stav cvičenia:</label>
+            <p id="global-status" style="font-size: 0.9em; color: #2980b9; margin-top: 5px;">Pripravené na cvičenie.</p>
+        </div>
+
+        <!-- JOBB OLDAL: Feladatok területe -->
+        <div class="content-area">
+            
+            <!-- 2. SZINT -->
+            <div class="level-section" id="level2-section">
+                <h2>2. Úroveň: Časovanie slovies</h2>
+                <p style="font-size: 0.9em; text-align: center; color: #555; margin-bottom: 15px;">
+                    Doplň správne tvary slovies. Vľavo: <em>ja, ty, on/ona/ono</em> | Vpravo: <em>my, vy, oni/ony</em>
+                </p>
+                <div class="grid-container-level2" id="level2-container">
+                    <!-- Dinamikusan generálva -->
+                </div>
+                <button class="btn-check" onclick="checkLevel2()">Skontrolovať 2. úroveň</button>
+                <div class="score" id="score2"></div>
+            </div>
+
+            <!-- 3. SZINT (Mondatokkal kontextusban, utekajú javítással) -->
+            <div class="level-section" id="level3-section">
+                <h2>3. Úroveň: Pokročilé časovanie (Kontext / Vety)</h2>
+                <p style="font-size: 0.9em; text-align: center; color: #555; margin-bottom: 15px;">
+                    Doplň správny tvar slovesa do vety (pozor na mäkké/tvrdé i/y a dĺžne, napr. <em>utekať -> utekajú</em>):
+                </p>
+                
+                <div id="level3-container">
+                    <div class="sentence-row">
+                        1. Zloduchovia rýchlo <strong>utekajú</strong> pred políciou. (utekať) -> 
+                        <input type="text" id="l3-input-1" placeholder="sem napíš tvar..." autocomplete="off">
+                    </div>
+                    <div class="sentence-row">
+                        2. Deti <strong>píšu</strong> domácu úlohu do zošita. (písať) -> 
+                        <input type="text" id="l3-input-2" placeholder="sem napíš tvar..." autocomplete="off">
+                    </div>
+                </div>
+
+                <button class="btn-check" onclick="checkLevel3()">Skontrolovať 3. úroveň</button>
+                <div class="score" id="score3"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Adatok a 2. szinthez (8 szó -> 4 sor, mert 2 oszlop van egymás mellett)
+        const level2Data = [
+            {
+                infinitivShow: "bicyklovať",
+                forms: ["bicyklujem", "bicykluješ", "bicykluje", "bicyklujeme", "bicyklujete", "bicyklujú"]
+            },
+            {
+                infinitivShow: "pracovať",
+                forms: ["pracujem", "pracuješ", "pracuje", "pracujeme", "pracujete", "pracujú"]
+            },
+            {
+                infinitivShow: "čítať",
+                forms: ["čítam", "čítaš", "číta", "čítame", "čítate", "čítajú"]
+            },
+            {
+                infinitivShow: "písať",
+                forms: ["píšem", "píšeš", "píše", "píšeme", "píšete", "píšu"]
+            },
+            {
+                infinitivShow: "hovoriť",
+                forms: ["hovorím", "hovoríš", "hovorí", "hovoríme", "hovoríte", "hovoria"]
+            },
+            {
+                infinitivShow: "robiť",
+                forms: ["robím", "robíš", "robí", "robíme", "robíte", "robia"]
+            },
+            {
+                infinitivShow: "vedieť",
+                forms: ["viem", "vieš", "vie", "vieme", "vietep".replace('tep', 'te'), "vedia"]
+            },
+            {
+                infinitivShow: "chcieť",
+                forms: ["chcem", "chceš", "chce", "chceme", "chcete", "chcú"]
+            }
+        ];
+
+        const pronounsLeft = ["ja", "ty", "on/ona/ono"];
+        const pronounsRight = ["my", "vy", "oni/ony"];
+
+        // 2. szint generálása
+        function renderLevel2() {
+            const container = document.getElementById("level2-container");
+            let html = "";
+
+            level2Data.forEach((item, index) => {
+                html += `
+                    <div class="verb-card">
+                        <div class="verb-title">${item.infinitivShow}</div>
+                        <div class="conjugation-grid">
+                            <!-- Bal oszlop: ja, ty, on/ona/ono -->
+                            <div class="pronoun-group">
+                `;
+                
+                for(let i = 0; i < 3; i++) {
+                    html += `
+                        <div class="row-item">
+                            <span>${pronounsLeft[i]}</span>
+                            <input type="text" data-verb="${index}" data-form="${i}" autocomplete="off">
+                        </div>
+                    `;
+                }
+
+                html += `
+                            </div>
+                            <!-- Jobb oszlop: my, vy, oni/ony -->
+                            <div class="pronoun-group">
+                `;
+
+                for(let i = 3; i < 6; i++) {
+                    html += `
+                        <div class="row-item">
+                            <span>${pronounsRight[i-3]}</span>
+                            <input type="text" data-verb="${index}" data-form="${i}" autocomplete="off">
+                        </div>
+                    `;
+                }
+
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // 2. szint ellenőrzése
+        function checkLevel2() {
+            const inputs = document.querySelectorAll("#level2-container input");
+            let correctCount = 0;
+            let totalCount = inputs.length;
+
+            inputs.forEach(input => {
+                let verbIdx = input.getAttribute("data-verb");
+                let formIdx = input.getAttribute("data-form");
+                let userVal = input.value.trim().toLowerCase();
+                let correctVal = level2Data[verbIdx].forms[formIdx].toLowerCase();
+
+                if(userVal === correctVal) {
+                    input.classList.add("correct");
+                    input.classList.remove("incorrect");
+                    correctCount++;
+                } else {
+                    input.classList.add("incorrect");
+                    input.classList.remove("correct");
+                }
+            });
+
+            document.getElementById("score2").innerText = `Výsledok: ${correctCount} / ${totalCount} správne.`;
+            updateGlobalStatus();
+        }
+
+        // 3. szint ellenőrzése
+        function checkLevel3() {
+            const val1 = document.getElementById("l3-input-1").value.trim().toLowerCase();
+            const val2 = document.getElementById("l3-input-2").value.trim().toLowerCase();
+            const scoreDiv = document.getElementById("score3");
+            
+            let correct = 0;
+            // 1. válasz: utekajú (rövid u-val!)
+            let input1 = document.getElementById("l3-input-1");
+            if(val1 === "utekajú") {
+                input1.classList.add("correct");
+                input1.classList.remove("incorrect");
+                correct++;
+            } else {
+                input1.classList.add("incorrect");
+                input1.classList.remove("correct");
+            }
+
+            // 2. válasz: píšu
+            let input2 = document.getElementById("l3-input-2");
+            if(val2 === "píšu") {
+                input2.classList.add("correct");
+                input2.classList.remove("incorrect");
+                correct++;
+            } else {
+                input2.classList.add("incorrect");
+                input2.classList.remove("correct");
+            }
+
+            scoreDiv.innerText = `Výsledok: ${correct} / 2 správne. (Pozor na krátke 'u' v slove utekajú!)`;
+            updateGlobalStatus();
+        }
+
+        // Segédfüggvény a görgetéshez
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateGlobalStatus() {
+            document.getElementById("global-status").innerText = "Úlohy boli skontrolované.";
+        }
+
+        // Inicializálás betöltéskor
+        window.onload = function() {
+            renderLevel2();
+        };
+    </script>
+</body>
+</html>
