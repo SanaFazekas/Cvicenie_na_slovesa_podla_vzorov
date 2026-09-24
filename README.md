@@ -1,0 +1,1 @@
+# Cvicenie_na_slovesa_podla_vzorov
